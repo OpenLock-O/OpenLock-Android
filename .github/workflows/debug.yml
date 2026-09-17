@@ -1,0 +1,139 @@
+name: Beta Builds
+
+run-name: Beta Builds · ${{ github.head_ref || github.ref_name }} · ${{ github.actor }} · #${{ github.run_number }}
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-beta:
+    name: Android debug APK
+    runs-on: ubuntu-latest
+    # The keystore is in the repository, so these three are the only secrets the
+    # build needs. `ORG_GRADLE_PROJECT_*` is Gradle's own convention for turning
+    # an environment variable into a project property, which is how
+    # app/build.gradle.kts picks them up. If they are absent the build still
+    # succeeds, just unsigned.
+    env:
+      ORG_GRADLE_PROJECT_OPENLOCK_RELEASE_STORE_PASSWORD: ${{ secrets.OPENLOCK_RELEASE_STORE_PASSWORD }}
+      ORG_GRADLE_PROJECT_OPENLOCK_RELEASE_KEY_ALIAS: ${{ secrets.OPENLOCK_RELEASE_KEY_ALIAS }}
+      ORG_GRADLE_PROJECT_OPENLOCK_RELEASE_KEY_PASSWORD: ${{ secrets.OPENLOCK_RELEASE_KEY_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          # Tags are what the version is derived from.
+          fetch-depth: 0
+
+      # 21, not 17: this app compiles to JVM 21 because miuix-nav ships JVM-21
+      # bytecode and its `entry<T> {}` builder is inline, so a 17 target fails
+      # with "Cannot inline bytecode built with JVM target 21".
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-cleanup: always
+
+      # compileSdk 37 is a hard floor from miuix + Compose 1.12, and the runner
+      # image does not carry it, so the platform is installed explicitly.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-37.0 build-tools;36.0.0'
+
+      - name: Build debug APK
+        shell: bash
+        run: |
+          chmod +x gradlew
+          BUILD_TIME="$(date -u +%Y%m%d-%H%M%S)"
+          # Beta versioning: the last tag is the base, and 0.0.1 stands in until
+          # the first release is tagged. The run number is appended so two betas
+          # built from the same commit are still telling apart on the device -
+          # the version string is all the user sees in app info.
+          BASE="$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.1)"
+          BASE="${BASE#v}"
+          VERSION="${BASE}-beta.${GITHUB_RUN_NUMBER}"
+          echo "BUILD_TIME=${BUILD_TIME}" >> "$GITHUB_ENV"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+          if [ -n "$ORG_GRADLE_PROJECT_OPENLOCK_RELEASE_STORE_PASSWORD" ]; then
+            echo "Signing secrets present; the test APK gets the release signature"
+          else
+            echo "::warning::OPENLOCK_RELEASE_* secrets missing; the APK will be debug-signed and cannot upgrade-install over a signed build"
+          fi
+
+          ./gradlew :app:assembleDebug -PversionName="$VERSION" --build-cache --stacktrace
+
+          # Stamp the artifact with the version and the build time: two builds of
+          # the same commit are otherwise indistinguishable once downloaded.
+          out_dir="app/build/outputs/apk/debug"
+          for apk in "$out_dir"/*.apk; do
+            [ -e "$apk" ] || continue
+            base="$(basename "$apk" .apk)"
+            base="${base%-debug}"
+            case "$base" in
+              *-arm64-v8a) abi="arm64-v8a" ;;
+              *-armeabi-v7a) abi="armeabi-v7a" ;;
+              *-x86_64) abi="x86_64" ;;
+              *) abi="universal" ;;
+            esac
+            mv "$apk" "${out_dir}/OpenLock-${VERSION}-${BUILD_TIME}-debug-${abi}.apk"
+          done
+          ls -l "$out_dir"
+
+      # Proves the signing actually happened rather than silently falling back
+      # to the runner's throwaway debug key - the one failure that looks like
+      # success until someone tries to install the APK.
+      - name: Verify the APK signature
+        shell: bash
+        run: |
+          # setup-android usually puts build-tools on PATH; fall back to
+          # locating it, and to skipping the check rather than failing the job
+          # if the runner layout is different.
+          apksigner="$(command -v apksigner || true)"
+          if [ -z "$apksigner" ]; then
+            sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+            if [ -n "$sdk_root" ]; then
+              apksigner="$(find "$sdk_root/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -1)"
+            fi
+          fi
+          if [ -z "$apksigner" ]; then
+            echo "::warning::apksigner not found; skipping signature check"
+            exit 0
+          fi
+          apk="$(ls app/build/outputs/apk/debug/*.apk | head -1)"
+          echo "Checking $apk"
+          "$apksigner" verify --print-certs "$apk"
+          # A debug-signed APK would report the Android debug key here.
+          if ! "$apksigner" verify --print-certs "$apk" | grep -qi "CN=OpenLock"; then
+            if [ -n "$ORG_GRADLE_PROJECT_OPENLOCK_RELEASE_STORE_PASSWORD" ]; then
+              echo "::error::expected the OpenLock release key, but the APK carries another signature"
+              exit 1
+            fi
+            echo "::warning::APK is debug-signed (signing secrets are not configured)"
+          fi
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/apk/debug/OpenLock-${{ env.VERSION }}-${{ env.BUILD_TIME }}-debug-*.apk
+          # One file per artifact so the download is the APK itself, not a zip
+          # the user has to unpack first.
+          archive: false
+          if-no-files-found: error

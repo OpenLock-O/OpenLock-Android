@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the organisation's logo: black line work on white. The mark
+         itself is ic_openlock_mark.xml, drawn at #111114 so it reads as black
+         without the harshness of pure #000000 on a white field. -->
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+</resources>

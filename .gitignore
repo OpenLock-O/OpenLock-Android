@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# OpenLock Android
+# ---------------------------------------------------------------------------
+
+# --- Gradle / build output -------------------------------------------------
+.gradle/
+build/
+captures/
+.cxx/
+.externalNativeBuild/
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output.json
+output-metadata.json
+
+# Scoped to the repository root on purpose. A bare `release/` also matches
+# app/src/release/, which is a standard Android source set - a file placed
+# there would be ignored with no warning at all. Build output already lives
+# under `build/`.
+/release/
+
+# --- IDE -------------------------------------------------------------------
+*.iml
+.idea/
+.kotlin/
+.kotlin-cache/
+*.hprof
+*.log
+
+# --- Signing ----------------------------------------------------------------
+# Passwords never go in the repository.
+keystore.properties
+*.jks
+*.keystore
+
+# The one deliberate exception: the release keystore is committed so CI can
+# sign every build with the same identity. Without it each GitHub runner
+# generates a fresh debug key, and no two builds can upgrade-install over each
+# other. The passwords stay in GitHub Secrets - the key file alone is useless
+# without them.
+#
+# NOTE: keep every comment on its own line. A trailing comment becomes part of
+# the pattern and the rule silently stops matching. The negation must also come
+# after the `*.jks` rule above, and `keystore/` must not itself be excluded.
+!keystore/openlock-release.jks
+
+# --- OS ---------------------------------------------------------------------
+.DS_Store
+Thumbs.db

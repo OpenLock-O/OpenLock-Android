@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The OpenLock-O mark: an open shackle above a ring split into four segments.
+
+  It is drawn rather than shipped as a bitmap so it stays crisp at every size
+  and can be tinted from the theme. Geometry is in a 108 unit viewport, then
+  scaled about the centre so the whole mark sits inside the 72 unit adaptive
+  icon safe zone:
+    shackle  centre (54,44)  r=17  stroke 9, a 200 degree arc (gap faces down)
+    ring     centre (54,70)  r=21  stroke 9, four arcs with gaps at 0/90/180/270
+
+  Stroke only, no fill - the mark is line work, like the organisation's logo.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:pivotX="54"
+        android:pivotY="59"
+        android:scaleX="0.85"
+        android:scaleY="0.85"
+        android:translateY="-5">
+
+        <!-- Shackle: over the top, legs pointing down at the ring's gap. -->
+        <path
+            android:pathData="M37.26,46.95 A17,17 0 1 1 70.74,46.95"
+            android:strokeColor="#111114"
+            android:strokeWidth="9"
+            android:strokeLineCap="butt" />
+
+        <!-- Ring, four segments (lower-right, lower-left, upper-left, upper-right). -->
+        <path
+            android:pathData="M74.61,74.01 A21,21 0 0 1 58.01,90.61"
+            android:strokeColor="#111114"
+            android:strokeWidth="9"
+            android:strokeLineCap="butt" />
+        <path
+            android:pathData="M49.99,90.61 A21,21 0 0 1 33.39,74.01"
+            android:strokeColor="#111114"
+            android:strokeWidth="9"
+            android:strokeLineCap="butt" />
+        <path
+            android:pathData="M33.39,65.99 A21,21 0 0 1 49.99,49.39"
+            android:strokeColor="#111114"
+            android:strokeWidth="9"
+            android:strokeLineCap="butt" />
+        <path
+            android:pathData="M58.01,49.39 A21,21 0 0 1 74.61,65.99"
+            android:strokeColor="#111114"
+            android:strokeWidth="9"
+            android:strokeLineCap="butt" />
+    </group>
+</vector>

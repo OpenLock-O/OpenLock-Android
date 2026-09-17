@@ -1,0 +1,29 @@
+<resources>
+    <!--
+      Compose draws the whole UI, so this theme only has to stay out of the way.
+
+      NoActionBar matters: `Theme.DeviceDefault.DayNight` includes a platform
+      action bar, which shows the app label as its title in a band above the
+      Compose content. That band follows the *system* dark mode, not the theme
+      chosen in the app, so it stayed dark in light mode and looked like a strip
+      of broken UI. There is no action bar now.
+
+      windowBackground is deliberately not set here: MainActivity paints it from
+      the Compose theme instead, so it tracks the in-app appearance (and matches
+      during the repaint when the theme changes).
+    -->
+    <!--
+      windowActionBar/windowNoTitle are set explicitly because the platform has
+      no `Theme.DeviceDefault.DayNight.NoActionBar`. Without them the inherited
+      action bar shows the app label as a title in a band above the Compose
+      content, following the *system* dark mode rather than the theme chosen in
+      the app - so it stayed dark in light mode and read as a strip of broken UI.
+    -->
+    <style name="Theme.OpenLock" parent="android:Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

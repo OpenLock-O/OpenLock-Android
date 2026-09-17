@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icon. The mark is the organisation's logo (see ic_openlock_mark.xml);
+  the background matches that logo, which is black line work on white.
+
+  A monochrome layer is supplied as well, so launchers that tint icons (Android
+  13+ themed icons) recolour the mark instead of falling back to a plain square.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_openlock_mark" />
+    <monochrome android:drawable="@drawable/ic_openlock_mark" />
+</adaptive-icon>

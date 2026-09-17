@@ -1,0 +1,47 @@
+[versions]
+# Pinned to the stack proven by LocLogger on this machine (AGP 9.3.1 + Kotlin
+# 2.4.10 + Gradle 9.7.0 + compileSdk 37), because miuix requires Kotlin 2.4.x
+# and compileSdk 37.
+agp = "9.3.1"
+kotlin = "2.4.10"
+# miuix 0.9.4-rc01 is the newest published build. It needs Kotlin 2.4.10 and
+# minCompileSdk 37, and its Compose runtime is 1.12.0-rc01.
+# Fall back to 0.9.3 if the RC misbehaves: same API surface for what we use.
+miuix = "0.9.4-rc01"
+compose-bom = "2026.08.00"
+activityCompose = "1.13.0"
+lifecycle = "2.11.0"
+coroutines = "1.11.0"
+biometric = "1.1.0"
+androidxCore = "1.19.0"
+
+[libraries]
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+# miuix: the published Android artifacts carry the -android suffix.
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
+miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuix" }
+# miuix-nav provides NavDisplay and its transitions. Hand-rolling navigation with
+# a `when (screen)` gives no animation at all, which is most of what makes the
+# library feel like miuix.
+miuix-nav = { module = "top.yukonga.miuix.kmp:miuix-nav-android", version.ref = "miuix" }
+# Canonical settings rows (ArrowPreference, SwitchPreference, ...). Using these
+# instead of Card + BasicComponent is what makes a settings page look right.
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuix" }
+# Real backdrop blur (runtime shader) for the floating bottom bar. It degrades
+# to no-op where the shader is unsupported, so the bar must still carry a
+# translucent colour of its own.
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
+
+[plugins]
+agp-app = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
